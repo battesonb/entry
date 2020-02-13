@@ -1,0 +1,20 @@
+[package]
+name = "entry"
+version = "0.1.0"
+authors = ["Byron Batteson <byronbatteson@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+assert_cmd = "0.12"
+chrono = "0.4"
+confy = "0.3"
+exitfailure = "0.5"
+failure = "0.1"
+regex = "1.3"
+predicates = "1.0"
+serde = "1.0"
+serde_derive = "1.0"
+shellexpand = "1.1"
+structopt = "0.3"
