@@ -1,16 +1,16 @@
 mod args;
 mod utils;
 
-use args::{Command, Config, Entry};
-use utils::{get_datetime, get_directory, has_text, prompt_opt};
+use args::{Command, Config, ConfigCommand, Entry};
+use utils::{get_datetime, get_directory, get_editor, has_text};
 
 use exitfailure::ExitFailure;
-use failure::{ResultExt};
-use std::{cmp, env::{var}, fs, io::{BufRead, BufReader}};
+use failure::{err_msg, ResultExt};
+use std::{fs, io::{BufRead, BufReader}};
 use structopt::StructOpt;
 
 fn main() -> Result<(), ExitFailure> {
-    let config: Config = confy::load("entry")?;
+    let mut config: Config = confy::load("entry")?;
     let args = Entry::from_args();
     match args.cmd {
         Command::New {entry_name, time} => {
@@ -30,7 +30,7 @@ fn main() -> Result<(), ExitFailure> {
                     fs::File::create(&filepath)?;
                 }
             }
-            let editor = var("EDITOR")?;
+            let editor = get_editor().with_context(|_| "please set your `EDITOR` environment variable to point to your favorite text editor")?;
             std::process::Command::new(editor).arg(&filepath).status()?;
         },
         Command::Find {entry_name, text} => {
@@ -62,47 +62,59 @@ fn main() -> Result<(), ExitFailure> {
                 Err(_) => {}
             }
         },
-        Command::Setup {} => {
-            println!("[1] Create file on call to the `new` subcommand (y/n)? ({})", if config.create_file { "y" } else { "n" });
-            let create_file_input: Option<String> = prompt_opt();
-            let create_file: bool = match create_file_input {
-                Some(v) => if v == "y" { true } else { false },
-                _ => config.create_file
-            };
-
-            println!("[2] Default note name? ({})", config.default_note_name);
-            let default_note_name_input: Option<String> = prompt_opt();
-            let default_note_name: String = match default_note_name_input {
-                Some(dnn) => dnn,
-                _ => config.default_note_name
-            };
-
-            println!("[3] Minute bucket size (1-60)? ({})", config.minute_bucket_size);
-            let minute_bucket_size_input: Option<String> = prompt_opt();
-            let minute_bucket_size: u32 = match minute_bucket_size_input {
-                Some(m) => {
-                    let minute_bucket_size_u32: Result<u32, _> = m.parse();
-                    match minute_bucket_size_u32 {
-                        Ok(v) => cmp::max(1, cmp::min(60, v)),
-                        _ => config.minute_bucket_size
+        Command::Config {cmd} => {
+            match cmd {
+                ConfigCommand::Get {key} => {
+                    match key.as_str() {
+                        "create_file" => println!("{}", config.create_file),
+                        "default_note_name" => println!("{}", config.default_note_name),
+                        "minute_bucket_size" => println!("{}", config.minute_bucket_size),
+                        "note_directory" => println!("{}", config.note_directory),
+                        _ => return Err(err_msg("invalid key, failed to retrieve config"))?
                     }
                 },
-                _ => config.minute_bucket_size
-            };
-
-            println!("[4] Note directory ({})", config.note_directory);
-            let note_directory_input: Option<String> = prompt_opt();
-            let note_directory = match note_directory_input {
-                Some(nd) => nd,
-                _ => config.note_directory
-            };
-
-            confy::store("entry", Config {
-                create_file: create_file,
-                default_note_name: default_note_name,
-                minute_bucket_size: minute_bucket_size,
-                note_directory: note_directory
-            })?;
+                ConfigCommand::Set {key, value} => {
+                    match key.as_str() {
+                        "create_file" => {
+                            let res: Result<bool, _> = value.parse();
+                            match res {
+                                Ok(v) => config.create_file = v,
+                                _ => return Err(err_msg("invalid value, failed to set config"))?
+                            }
+                        },
+                        "default_note_name" => {
+                            let res: Result<String, _> = value.parse();
+                            match res {
+                                Ok(v) => config.default_note_name = v,
+                                _ => return Err(err_msg("invalid value, failed to set config"))?
+                            }
+                        },
+                        "minute_bucket_size" => {
+                            let res: u32 = value.parse::<u32>().with_context(|_| "minute bucket size must be between 0 and 60")?;
+                            if res > 60 {
+                                return Err(err_msg("minute bucket size must be between 0 and 60"))?;
+                            } else {
+                                config.minute_bucket_size = res;
+                            }
+                        },
+                        "note_directory" => {
+                            let res: Result<String, _> = value.parse();
+                            match res {
+                                Ok(v) => config.note_directory = v,
+                                _ => return Err(err_msg("invalid value, failed to set config"))?
+                            }
+                        },
+                        _ => return Err(err_msg("invalid key, failed to retrieve config"))?
+                    }
+                    confy::store("entry", config).with_context(|_| "failed to save config")?;
+                },
+                ConfigCommand::List {} => {
+                    println!("create_file={}", config.create_file);
+                    println!("default_note_name={}", config.default_note_name);
+                    println!("minute_bucket_size={}", config.minute_bucket_size);
+                    println!("note_directory={}", config.note_directory);
+                }
+            }
         }
     }
     Ok(())

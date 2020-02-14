@@ -22,6 +22,21 @@ impl Default for Config {
 }
 
 #[derive(StructOpt)]
+pub enum ConfigCommand {
+    #[structopt(about = "Get the value for the given config key")]
+    Get {
+        key: String
+    },
+    #[structopt(about = "Set the value for the given config key")]
+    Set {
+        key: String,
+        value: String
+    },
+    #[structopt(about = "List all config keys")]
+    List {}
+}
+
+#[derive(StructOpt)]
 pub enum Command {
     #[structopt(about = "Create a new entry")]
     New {
@@ -35,7 +50,10 @@ pub enum Command {
         entry_name: Option<String>,
     },
     #[structopt(about = "Configure your default entry rules")]
-    Setup {}
+    Config {
+        #[structopt(subcommand)]
+        cmd: ConfigCommand
+    }
 }
 
 #[derive(StructOpt)]

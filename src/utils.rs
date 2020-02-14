@@ -1,7 +1,7 @@
 use chrono::prelude::{Datelike, DateTime, Local, Timelike};
 use failure::{bail, Error};
 use regex::Regex;
-use std::{fs, io::{BufReader, Lines}};
+use std::{env::{var}, fs, io::{BufReader, Lines}};
 
 pub fn get_directory(note_directory: &str, entry_name: &str) -> String {
     return format!("{}/{}", shellexpand::tilde(&note_directory), entry_name);
@@ -67,6 +67,32 @@ pub fn get_datetime(time: &str, minute_bucket_size: u32) -> Result<DateTime<Loca
     }
 }
 
+pub fn get_editor() -> Result<String, Error> {
+    let editor_env: Result<String, _> = var("EDITOR");
+    match editor_env {
+        Ok(editor) => {
+            return Ok(editor);
+        },
+        _ => {
+            let vim_result = std::process::Command::new("which")
+                                                   .arg("vim")
+                                                   .output();
+            match vim_result {
+                Ok(output) => {
+                    if output.status.success() {
+                        return Ok(String::from_utf8_lossy(&output.stdout).trim().to_string());
+                    } else {
+                        bail!("failed to determine editor");
+                    }
+                },
+                _ => {
+                    bail!("failed to determine editor");
+                }
+            }
+        }
+    }
+}
+
 pub fn has_text(text: &str, lines: Lines<BufReader<fs::File>>) -> bool {
     for line in lines {
         if line.unwrap().contains(text) {
@@ -74,16 +100,6 @@ pub fn has_text(text: &str, lines: Lines<BufReader<fs::File>>) -> bool {
         }
     }
     return false;
-}
-
-pub fn prompt_opt() -> Option<String> {
-    let mut input = String::new();
-    std::io::stdin().read_line(&mut input).unwrap();
-    let clean_input = input.trim();
-    if clean_input.len() > 0 {
-        return Some(String::from(clean_input));
-    }
-    return None;
 }
 
 #[cfg(test)]
