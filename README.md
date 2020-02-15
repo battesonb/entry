@@ -33,7 +33,7 @@ $ entry new # create a new note under the default entry name.
 ```
 
 ```sh
-$ entry setup # configure the entry tool.
+$ entry config # configure the entry tool with get, set and list subcommands.
 ```
 
 Each of these subcommands has optional arguments and can be viewed with -h (or

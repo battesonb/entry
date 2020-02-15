@@ -5,8 +5,14 @@ version = "0.1.1"
 authors = ["Byron Batteson <byronbatteson@gmail.com>"]
 edition = "2018"
 license = "MIT"
+readme = "README.md"
+keywords = ["tool", "note", "journal"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[badges]
+travis-ci = { repository = "battesonb/entry", branch = "master" }
 
 [dependencies]
 assert_cmd = "0.12"
