@@ -1,7 +1,7 @@
 # entry
 
 [![Build Status](https://travis-ci.org/battesonb/entry.svg?branch=master)](https://travis-ci.org/battesonb/entry)
-[![](http://meritbadge.herokuapp.com/entry)](https://crates.io/crates/entry)
+[![Crates.io](https://img.shields.io/crates/v/entry)](https://crates.io/crates/entry)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 A simple command-line note-taking tool.
