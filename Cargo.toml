@@ -1,7 +1,7 @@
 [package]
 name = "entry"
 description = "A simple note-taking tool"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["Byron Batteson <byronbatteson@gmail.com>"]
 edition = "2018"
 license = "MIT"
