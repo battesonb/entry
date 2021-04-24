@@ -1,20 +1,4 @@
-use serde::{Deserialize, Serialize};
 use structopt::StructOpt;
-
-#[derive(Deserialize, Serialize)]
-#[serde(default)]
-pub struct Config {
-    pub data_directory: String,
-}
-
-impl Default for Config {
-    fn default() -> Self {
-        // let project = ProjectDirs::from("rs", "", app_name);
-        Self {
-            data_directory: String::from("~/entries"),
-        }
-    }
-}
 
 #[derive(StructOpt)]
 pub enum ConfigCommand {
@@ -29,7 +13,7 @@ pub enum ConfigCommand {
 #[derive(StructOpt)]
 pub enum SchemaCommand {
     #[structopt(about = "Generate a new schema interactively")]
-    New {},
+    New,
     #[structopt(about = "Print the given schema")]
     Show { schema_name: String },
     #[structopt(about = "List all schemas")]
