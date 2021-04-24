@@ -16,6 +16,7 @@ travis-ci = { repository = "battesonb/entry", branch = "master" }
 
 [dependencies]
 assert_cmd = "0.12"
+directories-next = "2.0"
 chrono = "0.4"
 confy = "0.3"
 exitfailure = "0.5"
@@ -26,3 +27,4 @@ serde = "1.0"
 serde_derive = "1.0"
 shellexpand = "1.1"
 structopt = "0.3"
+serde_json = "1.0"

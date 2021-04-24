@@ -4,19 +4,14 @@ use structopt::StructOpt;
 #[derive(Deserialize, Serialize)]
 #[serde(default)]
 pub struct Config {
-    pub create_file: bool,
-    pub default_note_name: String,
-    pub minute_bucket_size: u32,
-    pub note_directory: String,
+    pub data_directory: String,
 }
 
 impl Default for Config {
     fn default() -> Self {
+        // let project = ProjectDirs::from("rs", "", app_name);
         Self {
-            create_file: false,
-            default_note_name: String::from("default"),
-            minute_bucket_size: 15,
-            note_directory: String::from("~/entries")
+            data_directory: String::from("~/entries"),
         }
     }
 }
@@ -24,41 +19,44 @@ impl Default for Config {
 #[derive(StructOpt)]
 pub enum ConfigCommand {
     #[structopt(about = "Get the value for the given config key")]
-    Get {
-        key: String
-    },
+    Get { key: String },
     #[structopt(about = "Set the value for the given config key")]
-    Set {
-        key: String,
-        value: String
-    },
+    Set { key: String, value: String },
     #[structopt(about = "List all config keys")]
-    List {}
+    List,
+}
+
+#[derive(StructOpt)]
+pub enum SchemaCommand {
+    #[structopt(about = "Generate a new schema interactively")]
+    New {},
+    #[structopt(about = "Print the given schema")]
+    Show { schema_name: String },
+    #[structopt(about = "List all schemas")]
+    List,
 }
 
 #[derive(StructOpt)]
 pub enum Command {
-    #[structopt(about = "Create a new entry")]
-    New {
-        #[structopt(short = "t", long = "time", default_value = "now")]
-        time: String,
-        entry_name: Option<String>,
+    #[structopt(about = "Generate, list or show schemas")]
+    Schema {
+        #[structopt(subcommand)]
+        cmd: SchemaCommand,
     },
-    #[structopt(about = "Find entries with the given text")]
-    Find {
-        text: Option<String>,
-        entry_name: Option<String>,
-    },
+    #[structopt(about = "Generate a new entry for the given schema")]
+    For { schema_name: String },
+    #[structopt(about = "Print the last entry")]
+    Last,
     #[structopt(about = "Configure your default entry rules")]
     Config {
         #[structopt(subcommand)]
-        cmd: ConfigCommand
-    }
+        cmd: ConfigCommand,
+    },
 }
 
 #[derive(StructOpt)]
-#[structopt(about = "a quick note-taking tool")]
+#[structopt(about = "A tool for generating JSON-formatted data from a local schema")]
 pub struct Entry {
     #[structopt(subcommand)]
-    pub cmd: Command
+    pub cmd: Command,
 }
