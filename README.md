@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/entry)](https://crates.io/crates/entry)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-A simple command-line note-taking tool.
+A tool for generating JSON-formatted data from a local schema.
 
 ### Installation
 
@@ -20,24 +20,17 @@ Make sure that you have cargo installed and that cargo is in your path:
 export PATH="$HOME/.cargo/bin:$PATH"
 ```
 
-### Examples
+### Previous versions
 
-The entry command-line tool currently has three main subcommands.
+If you're looking for the version which simply allows quick note creation:
 
-```sh
-$ entry find # find entries that contain the given text.
-```
+1. You can build from source for v0.1.2.
+2. Use a shell alias/function the `date` command and your preferred editor.
+3. Fork from v0.1.2 if you'd like to improve upon that functionality.
 
-```sh
-$ entry new # create a new note under the default entry name.
-```
-
-```sh
-$ entry config # configure the entry tool with get, set and list subcommands.
-```
-
-Each of these subcommands has optional arguments and can be viewed with -h (or
---help).
+I'm no longer supporting the note-taking feature, since I've started preferring
+recording notes and data following some schema so that I can graph out the data
+over time.
 
 ### Contributing
 
