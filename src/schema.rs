@@ -1,4 +1,7 @@
-use chrono::prelude::{DateTime, Datelike, Local, Timelike};
+use chrono::{
+    prelude::{NaiveDate, NaiveDateTime},
+    DateTime,
+};
 use serde::{Deserialize, Serialize};
 use serde_json::{Number, Value};
 use std::{
@@ -26,6 +29,8 @@ pub enum SchemaDataType {
     Number,
     #[serde(rename = "date")]
     Date,
+    #[serde(rename = "datetime")]
+    DateTime,
 }
 
 impl std::fmt::Display for SchemaDataType {
@@ -88,16 +93,28 @@ impl SchemaType {
     fn parse_individual(&self, value: &str) -> Option<Value> {
         match self.data_type {
             SchemaDataType::Date => {
-                let custom_formats = [
-                    "%Y-%m-%d",
-                    "%Y/%m/%d",
-                    "%Y-%m-%d %H:%M:%S",
-                    "%Y/%m/%d %H:%M:%S",
-                ];
+                let custom_date_formats = ["%Y-%m-%d", "%Y/%m/%d"];
 
-                for &format in custom_formats.iter() {
-                    let result = DateTime::parse_from_str(value, format);
-                    if let Ok(_) = result {
+                for &format in custom_date_formats.iter() {
+                    if let Ok(_) = NaiveDate::parse_from_str(value, format) {
+                        return Some(Value::String(value.to_string()));
+                    }
+                }
+                None
+            }
+            SchemaDataType::DateTime => {
+                if let Ok(_) = DateTime::parse_from_rfc2822(value) {
+                    return Some(Value::String(value.to_string()));
+                }
+
+                if let Ok(_) = DateTime::parse_from_rfc3339(value) {
+                    return Some(Value::String(value.to_string()));
+                }
+
+                let custom_datetime_formats = ["%Y-%m-%d %H:%M:%S", "%Y/%m/%d %H:%M:%S"];
+
+                for &format in custom_datetime_formats.iter() {
+                    if let Ok(_) = NaiveDateTime::parse_from_str(value, format) {
                         return Some(Value::String(value.to_string()));
                     }
                 }
