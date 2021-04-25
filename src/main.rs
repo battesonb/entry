@@ -172,13 +172,10 @@ mod tests {
     use assert_cmd::Command;
 
     #[test]
-    fn invalid_minute() -> Result<(), Box<dyn std::error::Error>> {
+    fn displays_help_without_failure() -> Result<(), Box<dyn std::error::Error>> {
         let mut cmd = Command::cargo_bin("entry").unwrap();
-        cmd.arg("new");
-        cmd.arg("-t 12:60");
-        cmd.assert()
-            .failure()
-            .stderr(predicates::str::contains("invalid minute input"));
+        cmd.arg("help");
+        cmd.assert().success();
         Ok(())
     }
 }

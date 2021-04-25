@@ -13,7 +13,7 @@ use std::{
 
 use crate::{config::Config, errors::EntryError};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum SchemaCount {
     #[serde(rename = "one")]
     One,
@@ -21,7 +21,7 @@ pub enum SchemaCount {
     Many,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum SchemaDataType {
     #[serde(rename = "string")]
     String,
@@ -52,7 +52,7 @@ impl FromStr for SchemaDataType {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub struct SchemaType {
     pub count: SchemaCount,
     pub data_type: SchemaDataType,
@@ -111,7 +111,12 @@ impl SchemaType {
                     return Some(Value::String(value.to_string()));
                 }
 
-                let custom_datetime_formats = ["%Y-%m-%d %H:%M:%S", "%Y/%m/%d %H:%M:%S"];
+                let custom_datetime_formats = [
+                    "%Y-%m-%d %H:%M:%S",
+                    "%Y/%m/%d %H:%M:%S",
+                    "%Y-%m-%d %H:%M",
+                    "%Y/%m/%d %H:%M",
+                ];
 
                 for &format in custom_datetime_formats.iter() {
                     if let Ok(_) = NaiveDateTime::parse_from_str(value, format) {
@@ -122,7 +127,6 @@ impl SchemaType {
             }
             SchemaDataType::Number => Number::from_str(value).map(|v| Value::Number(v)).ok(),
             SchemaDataType::String => Some(Value::String(value.to_string())),
-            _ => None,
         }
     }
 }
@@ -226,8 +230,36 @@ mod tests {
     use super::*;
 
     #[test]
-    fn get_directory_appends_entry_name_to_directory() {
-        // let directory = Schema::get_directory("/a/directory", "note");
-        // assert_eq!(directory, "/a/directory/note");
+    fn schema_types_can_parse_individual_data_types() {
+        let data_types = [
+            (
+                SchemaDataType::Date,
+                "2021/04/25",
+                Value::String("2021/04/25".to_string()),
+            ),
+            (
+                SchemaDataType::DateTime,
+                "2021/04/25 11:17:00",
+                Value::String("2021/04/25 11:17:00".to_string()),
+            ),
+            (
+                SchemaDataType::Number,
+                "20.5",
+                Value::Number(Number::from_f64(20.5).unwrap()),
+            ),
+            (
+                SchemaDataType::String,
+                "anything531",
+                Value::String("anything531".to_string()),
+            ),
+        ];
+
+        for (data_type, input, value) in data_types.iter() {
+            let schema_type = SchemaType {
+                count: SchemaCount::One,
+                data_type: data_type.clone(),
+            };
+            assert_eq!(schema_type.parse(*input).unwrap(), value.clone());
+        }
     }
 }

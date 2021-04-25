@@ -1,9 +1,5 @@
-use std::str::FromStr;
-
 use directories_next::ProjectDirs;
 use serde::{Deserialize, Serialize};
-
-use crate::errors::EntryError;
 
 static FALLBACK_DIR: &'static str = "~/entry_data";
 
