@@ -35,7 +35,7 @@ fn main() -> Result<(), ExitFailure> {
                         break;
                     }
                     println!("found {}", field_name);
-                    println!("Enter a type for the new field (string, number, date):");
+                    println!("Enter a type for the new field (string, number, date, datetime):");
                     loop {
                         if let Ok(data_type) = SchemaDataType::from_str(&read_line()) {
                             println!("Is this an array? (y/n)");
