@@ -10,7 +10,11 @@ use schema::{Schema, SchemaCount, SchemaDataType, SchemaType};
 use exitfailure::ExitFailure;
 use failure::{err_msg, ResultExt};
 use serde_json::{Map, Value};
-use std::{collections::HashMap, fs, io, str::FromStr};
+use std::{
+    fs::{self, OpenOptions},
+    io::{self, Read, Write},
+    str::FromStr,
+};
 use structopt::StructOpt;
 
 fn main() -> Result<(), ExitFailure> {
@@ -74,7 +78,6 @@ fn main() -> Result<(), ExitFailure> {
                     schema.print();
                 }
             }
-            _ => todo!("schema command"),
         },
         Command::Config { cmd } => match cmd {
             ConfigCommand::Get { key } => match key.as_str() {
@@ -119,13 +122,38 @@ fn main() -> Result<(), ExitFailure> {
                 }
                 if let Ok(json) = serde_json::to_string(&Value::Object(map)) {
                     println!("{}", json);
-                    // persist the output (cache it indefinitely)
+                    save(&format!("{}/cached.json", &config.data_directory), &json);
                 }
             }
         }
-        _ => todo!("command"),
+        Command::Last => {
+            println!(
+                "{}",
+                load(&format!("{}/cached.json", &config.data_directory))
+            )
+        }
     }
     Ok(())
+}
+
+fn save(path: &str, data: &str) -> () {
+    let result = OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(path);
+    if let Ok(mut file) = result {
+        file.write_all(data.as_bytes());
+    }
+}
+
+fn load(path: &str) -> String {
+    let result = OpenOptions::new().read(true).open(path);
+    let mut buf = String::new();
+    if let Ok(mut file) = result {
+        file.read_to_string(&mut buf);
+    }
+    return buf;
 }
 
 fn read_line() -> String {
