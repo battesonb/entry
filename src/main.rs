@@ -60,7 +60,10 @@ fn main() -> Result<(), ExitFailure> {
                 if !schema.is_empty() {
                     println!("Saving schema...");
                     schema
-                        .save(&format!("{}/schema", &config.data_directory), &schema_name)
+                        .save(
+                            &format!("{}/schema", &config.data_directory()),
+                            &schema_name,
+                        )
                         .unwrap();
                 } else {
                     println!("Schema is empty, not saving.");
@@ -72,16 +75,17 @@ fn main() -> Result<(), ExitFailure> {
                 });
             }
             SchemaCommand::Show { schema_name } => {
-                if let Ok(schema) =
-                    Schema::load(&format!("{}/schema", &config.data_directory), &schema_name)
-                {
+                if let Ok(schema) = Schema::load(
+                    &format!("{}/schema", &config.data_directory()),
+                    &schema_name,
+                ) {
                     schema.print();
                 }
             }
         },
         Command::Config { cmd } => match cmd {
             ConfigCommand::Get { key } => match key.as_str() {
-                "data_directory" => println!("{}", config.data_directory),
+                "data_directory" => println!("{}", config.data_directory()),
                 _ => return Err(err_msg("invalid key, failed to retrieve config"))?,
             },
             ConfigCommand::Set { key, value } => {
@@ -89,7 +93,7 @@ fn main() -> Result<(), ExitFailure> {
                     "data_directory" => {
                         let res: Result<String, _> = value.parse();
                         match res {
-                            Ok(v) => config.data_directory = v,
+                            Ok(v) => config.set_data_directory(v),
                             _ => return Err(err_msg("invalid value, failed to set config"))?,
                         }
                     }
@@ -98,13 +102,14 @@ fn main() -> Result<(), ExitFailure> {
                 confy::store("entry", config).with_context(|_| "failed to save config")?;
             }
             ConfigCommand::List {} => {
-                println!("data_directory={}", config.data_directory);
+                println!("data_directory={}", config.data_directory());
             }
         },
         Command::For { schema_name } => {
-            if let Ok(schema) =
-                Schema::load(&format!("{}/schema", &config.data_directory), &schema_name)
-            {
+            if let Ok(schema) = Schema::load(
+                &format!("{}/schema", &config.data_directory()),
+                &schema_name,
+            ) {
                 let mut map: Map<String, Value> = Map::new();
                 for (field_name, field_type) in schema {
                     println!("Please provide the {} ({}):", field_name, field_type);
@@ -122,14 +127,14 @@ fn main() -> Result<(), ExitFailure> {
                 }
                 if let Ok(json) = serde_json::to_string(&Value::Object(map)) {
                     println!("{}", json);
-                    save(&format!("{}/cached.json", &config.data_directory), &json);
+                    save(&format!("{}/cached.json", &config.data_directory()), &json);
                 }
             }
         }
         Command::Last => {
             println!(
                 "{}",
-                load(&format!("{}/cached.json", &config.data_directory))
+                load(&format!("{}/cached.json", &config.data_directory()))
             )
         }
     }
@@ -163,7 +168,7 @@ fn read_line() -> String {
 }
 
 fn initialize(config: &Config) -> Result<(), io::Error> {
-    let path = format!("{}/schema", config.data_directory);
+    let path = format!("{}/schema", config.data_directory());
     return fs::create_dir_all(path);
 }
 

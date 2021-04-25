@@ -163,7 +163,7 @@ impl Schema {
     }
 
     pub fn list(config: &Config) -> Vec<String> {
-        if let Ok(dir) = fs::read_dir(format!("{}/schema", &config.data_directory)) {
+        if let Ok(dir) = fs::read_dir(format!("{}/schema", &config.data_directory())) {
             let names: Vec<String> = dir
                 .filter_map(|f| {
                     if let Ok(entry) = f {

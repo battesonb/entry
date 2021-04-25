@@ -6,7 +6,17 @@ static FALLBACK_DIR: &'static str = "~/entry_data";
 #[derive(Deserialize, Serialize)]
 #[serde(default)]
 pub struct Config {
-    pub data_directory: String,
+    data_directory: String,
+}
+
+impl Config {
+    pub fn data_directory(&self) -> String {
+        return shellexpand::tilde(&self.data_directory).to_string();
+    }
+
+    pub fn set_data_directory(&mut self, value: String) -> () {
+        self.data_directory = value;
+    }
 }
 
 impl Default for Config {
