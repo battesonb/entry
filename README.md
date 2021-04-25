@@ -61,7 +61,10 @@ Successfully removed schema `migraine`
 ```
 
 ```sh
-$ entry for migraine # shows the last JSON-formatted entry
+$ entry for migraine # interactively generate a new entry for a given schema
+Please provide the activities (array of strings)
+...
+
 {date:"2020/04/02",painScale:7,foods:["tomato"],activities:["run"]}
 ```
 
