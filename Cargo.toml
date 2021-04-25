@@ -1,6 +1,6 @@
 [package]
 name = "entry"
-description = "A simple note-taking tool"
+description = "An interactive CLI for generating JSON-formatted data from a local schema"
 version = "0.2.0"
 authors = ["Byron Batteson <byronbatteson@gmail.com>"]
 edition = "2018"
