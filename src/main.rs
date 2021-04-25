@@ -9,7 +9,8 @@ use schema::{Schema, SchemaCount, SchemaDataType, SchemaType};
 
 use exitfailure::ExitFailure;
 use failure::{err_msg, ResultExt};
-use std::{fs, io, str::FromStr};
+use serde_json::{Map, Value};
+use std::{collections::HashMap, fs, io, str::FromStr};
 use structopt::StructOpt;
 
 fn main() -> Result<(), ExitFailure> {
@@ -97,6 +98,31 @@ fn main() -> Result<(), ExitFailure> {
                 println!("data_directory={}", config.data_directory);
             }
         },
+        Command::For { schema_name } => {
+            if let Ok(schema) =
+                Schema::load(&format!("{}/schema", &config.data_directory), &schema_name)
+            {
+                let mut map: Map<String, Value> = Map::new();
+                for (field_name, field_type) in schema {
+                    println!("Please provide the {} ({}):", field_name, field_type);
+                    loop {
+                        let response = read_line();
+                        if let Some(value) = field_type.parse(&response) {
+                            map.insert(field_name, value);
+                            break;
+                        }
+                        println!(
+                            "Invalid value received, make sure it is a valid {}.",
+                            field_type
+                        );
+                    }
+                }
+                if let Ok(json) = serde_json::to_string(&Value::Object(map)) {
+                    println!("{}", json);
+                    // persist the output (cache it indefinitely)
+                }
+            }
+        }
         _ => todo!("command"),
     }
     Ok(())
