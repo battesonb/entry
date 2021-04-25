@@ -1,7 +1,7 @@
 [package]
 name = "entry"
 description = "A simple note-taking tool"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Byron Batteson <byronbatteson@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -21,8 +21,6 @@ chrono = "0.4"
 confy = "0.3"
 exitfailure = "0.5"
 failure = "0.1"
-regex = "1.3"
-predicates = "1.0"
 serde = "1.0"
 serde_derive = "1.0"
 shellexpand = "1.1"
