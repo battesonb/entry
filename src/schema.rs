@@ -223,6 +223,14 @@ impl Schema {
             Err(_) => Err(EntryError::SchemaLoadError),
         };
     }
+
+    pub fn remove(path: &str, name: &str) -> Result<(), EntryError> {
+        let full_path = format!("{}/{}.json", path, name);
+        match fs::remove_file(full_path) {
+            Ok(_) => Ok(()),
+            Err(_) => Err(EntryError::SchemaRemoveError),
+        }
+    }
 }
 
 #[cfg(test)]

@@ -82,6 +82,15 @@ fn main() -> Result<(), ExitFailure> {
                     schema.print();
                 }
             }
+            SchemaCommand::Remove { schema_name } => {
+                match Schema::remove(
+                    &format!("{}/schema", &config.data_directory()),
+                    &schema_name,
+                ) {
+                    Ok(_) => println!("Successfully removed schema `{}`", schema_name),
+                    Err(_) => eprintln!("Failed to remove schema `{}`", schema_name),
+                }
+            }
         },
         Command::Config { cmd } => match cmd {
             ConfigCommand::Get { key } => match key.as_str() {

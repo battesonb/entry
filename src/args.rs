@@ -18,6 +18,8 @@ pub enum SchemaCommand {
     Show { schema_name: String },
     #[structopt(about = "List all schemas")]
     List,
+    #[structopt(about = "Remove a given schema")]
+    Remove { schema_name: String },
 }
 
 #[derive(StructOpt)]
