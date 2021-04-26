@@ -13,7 +13,7 @@ use std::{
 
 use crate::{config::Config, errors::EntryError};
 
-#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum SchemaCount {
     #[serde(rename = "one")]
     One,
@@ -71,7 +71,10 @@ impl SchemaType {
     pub fn parse(&self, value: &str) -> Option<Value> {
         let trimmed = value.trim();
         if trimmed.len() == 0 {
-            return None;
+            return match self.count {
+                SchemaCount::Many => Some(Value::Array(vec![])),
+                SchemaCount::One => None,
+            };
         }
         match self.count {
             SchemaCount::Many => {
