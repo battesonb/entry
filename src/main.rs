@@ -95,7 +95,7 @@ fn main() -> Result<(), ExitFailure> {
         Command::Config { cmd } => match cmd {
             ConfigCommand::Get { key } => match key.as_str() {
                 "data_directory" => println!("{}", config.data_directory()),
-                _ => return Err(err_msg("invalid key, failed to retrieve config"))?,
+                _ => return Err(err_msg("invalid key, failed to retrieve config").into()),
             },
             ConfigCommand::Set { key, value } => {
                 match key.as_str() {
@@ -103,10 +103,10 @@ fn main() -> Result<(), ExitFailure> {
                         let res: Result<String, _> = value.parse();
                         match res {
                             Ok(v) => config.set_data_directory(v),
-                            _ => return Err(err_msg("invalid value, failed to set config"))?,
+                            _ => return Err(err_msg("invalid value, failed to set config").into()),
                         }
                     }
-                    _ => return Err(err_msg("invalid key, failed to retrieve config"))?,
+                    _ => return Err(err_msg("invalid key, failed to retrieve config").into()),
                 }
                 confy::store("entry", config).with_context(|_| "failed to save config")?;
             }
@@ -150,7 +150,7 @@ fn main() -> Result<(), ExitFailure> {
     Ok(())
 }
 
-fn save(path: &str, data: &str) -> () {
+fn save(path: &str, data: &str) {
     let result = OpenOptions::new()
         .create(true)
         .write(true)
@@ -167,7 +167,7 @@ fn load(path: &str) -> String {
     if let Ok(mut file) = result {
         file.read_to_string(&mut buf);
     }
-    return buf;
+    buf
 }
 
 fn read_line() -> String {
@@ -178,7 +178,7 @@ fn read_line() -> String {
 
 fn initialize(config: &Config) -> Result<(), io::Error> {
     let path = format!("{}/schema", config.data_directory());
-    return fs::create_dir_all(path);
+    fs::create_dir_all(path)
 }
 
 #[cfg(test)]

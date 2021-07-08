@@ -11,7 +11,7 @@ use std::{
     str::FromStr,
 };
 
-use crate::{config::Config, errors::EntryError};
+use crate::{config::Config, errors::SchemaError};
 
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Serialize)]
 pub enum SchemaCount {
@@ -40,14 +40,14 @@ impl std::fmt::Display for SchemaDataType {
 }
 
 impl FromStr for SchemaDataType {
-    type Err = EntryError;
+    type Err = SchemaError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
             "date" => Ok(SchemaDataType::Date),
             "number" => Ok(SchemaDataType::Number),
             "string" => Ok(SchemaDataType::String),
-            _ => Err(EntryError::SchemaParseError),
+            _ => Err(SchemaError::ParseError),
         }
     }
 }
@@ -70,7 +70,7 @@ impl std::fmt::Display for SchemaType {
 impl SchemaType {
     pub fn parse(&self, value: &str) -> Option<Value> {
         let trimmed = value.trim();
-        if trimmed.len() == 0 {
+        if trimmed.is_empty() {
             return match self.count {
                 SchemaCount::Many => Some(Value::Array(vec![])),
                 SchemaCount::One => None,
@@ -78,7 +78,7 @@ impl SchemaType {
         }
         match self.count {
             SchemaCount::Many => {
-                let split = trimmed.split(",");
+                let split = trimmed.split(',');
                 let mut vec: Vec<Value> = Vec::new();
                 for v in split {
                     if let Some(parsed) = self.parse_individual(v) {
@@ -99,18 +99,18 @@ impl SchemaType {
                 let custom_date_formats = ["%Y-%m-%d", "%Y/%m/%d"];
 
                 for &format in custom_date_formats.iter() {
-                    if let Ok(_) = NaiveDate::parse_from_str(value, format) {
+                    if NaiveDate::parse_from_str(value, format).is_ok() {
                         return Some(Value::String(value.to_string()));
                     }
                 }
                 None
             }
             SchemaDataType::DateTime => {
-                if let Ok(_) = DateTime::parse_from_rfc2822(value) {
+                if DateTime::parse_from_rfc2822(value).is_ok() {
                     return Some(Value::String(value.to_string()));
                 }
 
-                if let Ok(_) = DateTime::parse_from_rfc3339(value) {
+                if DateTime::parse_from_rfc3339(value).is_ok() {
                     return Some(Value::String(value.to_string()));
                 }
 
@@ -122,13 +122,13 @@ impl SchemaType {
                 ];
 
                 for &format in custom_datetime_formats.iter() {
-                    if let Ok(_) = NaiveDateTime::parse_from_str(value, format) {
+                    if NaiveDateTime::parse_from_str(value, format).is_ok() {
                         return Some(Value::String(value.to_string()));
                     }
                 }
                 None
             }
-            SchemaDataType::Number => Number::from_str(value).map(|v| Value::Number(v)).ok(),
+            SchemaDataType::Number => Number::from_str(value).map(Value::Number).ok(),
             SchemaDataType::String => Some(Value::String(value.to_string())),
         }
     }
@@ -157,12 +157,12 @@ impl IntoIterator for Schema {
 }
 
 impl Schema {
-    pub fn insert(&mut self, key: String, value: SchemaType) -> () {
+    pub fn insert(&mut self, key: String, value: SchemaType) {
         self.shape.insert(key, value);
     }
 
     pub fn is_empty(&self) -> bool {
-        return self.shape.is_empty();
+        self.shape.is_empty()
     }
 
     pub fn list(config: &Config) -> Vec<String> {
@@ -183,16 +183,16 @@ impl Schema {
                 .collect();
             return names;
         }
-        return Vec::new();
+        Vec::new()
     }
 
-    pub fn print(&self) -> () {
+    pub fn print(&self) {
         if let Ok(json_str) = serde_json::to_string(&self) {
             println!("{}", json_str);
         }
     }
 
-    pub fn save(&self, path: &str, name: &str) -> Result<(), EntryError> {
+    pub fn save(&self, path: &str, name: &str) -> Result<(), SchemaError> {
         let full_path = format!("{}/{}.json", path, name);
         let result = OpenOptions::new()
             .create(true)
@@ -204,34 +204,34 @@ impl Schema {
                 let write_result = serde_json::to_writer_pretty(file, &self);
                 match write_result {
                     Ok(_) => Ok(()),
-                    Err(_) => Err(EntryError::SchemaSaveError),
+                    Err(_) => Err(SchemaError::SaveError),
                 }
             }
-            Err(_) => Err(EntryError::SchemaSaveError),
+            Err(_) => Err(SchemaError::SaveError),
         }
     }
 
-    pub fn load(path: &str, name: &str) -> Result<Schema, EntryError> {
+    pub fn load(path: &str, name: &str) -> Result<Schema, SchemaError> {
         let full_path = format!("{}/{}.json", path, name);
         let result = File::open(full_path);
-        return match result {
+        match result {
             Ok(file) => {
                 let reader = BufReader::new(file);
                 let schema_result = serde_json::from_reader(reader);
                 match schema_result {
                     Ok(schema) => Ok(schema),
-                    Err(_) => Err(EntryError::SchemaParseError),
+                    Err(_) => Err(SchemaError::ParseError),
                 }
             }
-            Err(_) => Err(EntryError::SchemaLoadError),
-        };
+            Err(_) => Err(SchemaError::LoadError),
+        }
     }
 
-    pub fn remove(path: &str, name: &str) -> Result<(), EntryError> {
+    pub fn remove(path: &str, name: &str) -> Result<(), SchemaError> {
         let full_path = format!("{}/{}.json", path, name);
         match fs::remove_file(full_path) {
             Ok(_) => Ok(()),
-            Err(_) => Err(EntryError::SchemaRemoveError),
+            Err(_) => Err(SchemaError::RemoveError),
         }
     }
 }
@@ -268,7 +268,7 @@ mod tests {
         for (data_type, input, value) in data_types.iter() {
             let schema_type = SchemaType {
                 count: SchemaCount::One,
-                data_type: data_type.clone(),
+                data_type: *data_type,
             };
             assert_eq!(schema_type.parse(*input).unwrap(), value.clone());
         }

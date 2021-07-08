@@ -1,7 +1,7 @@
 #[derive(Debug)]
-pub enum EntryError {
-    SchemaLoadError,
-    SchemaParseError,
-    SchemaRemoveError,
-    SchemaSaveError,
+pub enum SchemaError {
+    LoadError,
+    ParseError,
+    RemoveError,
+    SaveError,
 }
